@@ -1,0 +1,456 @@
+@using EasioCore.Models
+@{
+    ViewData["Title"] = "Patient Registration";
+    Layout = "~/Views/Shared/_RegistrationLayout.cshtml";
+    var patient = ViewBag.Patient as SMHSData;
+    var patientTypeDisplay = ViewBag.PatientTypeDisplay as string ?? "OTHER";
+    var dateToday = ViewBag.DateToday as string ?? DateTime.Now.ToString("dd-MM-yyyy");
+    var allTestsList = ViewBag.AllTestsList as IEnumerable<dynamic> ?? new List<object>();
+    var showReceipt = ViewBag.ShowReceipt as bool? ?? false;
+    var receiptNo = ViewBag.ReceiptNo as string ?? "";
+    var receiptLines = ViewBag.ReceiptLines as List<LabSoftware.Controllers.ReceiptLine> ?? new List<LabSoftware.Controllers.ReceiptLine>();
+    var receiptTotal = ViewBag.ReceiptTotal as string ?? "0";
+    var receiptPaymentMode = ViewBag.ReceiptPaymentMode as string ?? "";
+    var receiptDate = ViewBag.ReceiptDate as string ?? "";
+    var companyName = ViewBag.CompanyName as string ?? "Easio Lab Software";
+    var receiptPatient = ViewBag.ReceiptPatient as SMHSData;
+    var receiptFreeTypeName = ViewBag.ReceiptFreeTypeName as string ?? "Full Paid";
+    var receiptTransactionNo = ViewBag.ReceiptTransactionNo as string ?? "";
+}
+
+<style>
+    .table-selected-tests thead th { background-color: #1C5E55 !important; font-size: 14px; color: white; }
+    .table-selected-tests tfoot td { background-color: #1C5E55 !important; font-size: 14px; color: white; }
+    .table-selected-tests tbody tr { background-color: #E3EAEB; }
+    .table-selected-tests tbody tr:nth-child(even) { background-color: #fff; }
+    .receipt-panel { border: 1px solid #ddd; padding: 20px; background: #fff; margin: 0; text-align: left; max-width: 210mm; width: 100%; box-sizing: border-box; }
+    .receipt-section-wrap { max-width: 210mm; width: 100%; }
+    .receipt-header-row { display: flex; align-items: center; justify-content: flex-start; gap: 15px; margin-bottom: 8px; }
+    .receipt-logo { height: 80px; width: 80px; flex-shrink: 0; }
+    .receipt-company { text-align: left; }
+    .receipt-company h3 { font-family: 'Times New Roman', serif; font-weight: 600; margin-bottom: 0; font-size: 1.35rem; }
+    .receipt-company .subtitle { font-weight: 600; font-size: 14px; margin: 2px 0; color: #333; }
+    .receipt-two-col { display: flex; justify-content: space-between; padding: 0 10px; margin: 10px 0; }
+    .receipt-two-col > div { flex: 1; }
+    .receipt-table { width: 100%; text-align: left; border-collapse: collapse; font-size: 14px; }
+    .receipt-table th { border-bottom: 1px solid #eee; padding: 6px 8px; }
+    .receipt-table td { padding: 5px 8px; }
+    .receipt-table tfoot tr { border-top: 1px solid #eee; font-weight: bold; }
+    .receipt-remarks-box { border: 1px solid #333; border-radius: 8px; padding: 10px; margin-top: 12px; text-align: left; min-height: 50px; position: relative; }
+    @@media print { .no-print { display: none !important; } .receipt-panel { box-shadow: none; } }
+</style>
+
+@if (showReceipt)
+{
+    <div class="alert alert-success alert-dismissible fade show no-print" role="alert" style="margin: -0.5rem -1rem 1rem -1rem; border-radius: 0;">
+        <strong><i class="fas fa-check"></i> Success</strong><br />Reciept Saved Successfully.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card card-outline card-info" style="min-height: 100vh;">
+    <div class="card-header" style="background: #f8f9fa; border-bottom: 1px solid #dee2e6;">
+        <h3 class="card-title mb-0">
+            <a asp-action="Index" class="btn btn-sm btn-danger" style="margin-bottom: 4px;">
+                <i class="fa fa-arrow-left"></i>&nbsp;Back
+            </a>&nbsp;
+            <span>Patient Registration</span>
+        </h3>
+        <span class="float-end">
+            <div class="input-group input-group-sm">
+                <label class="input-group-text">Date Today</label>
+                <input type="text" class="form-control" readonly value="@dateToday" style="background-color: #fff;" />
+            </div>
+        </span>
+    </div>
+
+    <div class="card-body">
+        @if (showReceipt)
+        {
+            <div class="receipt-section-wrap">
+            <div class="no-print mb-3">
+                <div class="row align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">No Of Copies</label>
+                        <select class="form-select form-select-sm" id="ddlNoOfCopies">
+                            <option value="1" selected>1</option>
+                            <option value="2">2</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-info btn-sm" id="btnPrint"><i class="fas fa-print"></i> Print</button>
+                    </div>
+                </div>
+            </div>
+            <div id="receiptDocument" class="receipt-panel">
+                <div class="receipt-header-row">
+                    <img src="~/logo/logo.png" alt="" class="receipt-logo" />
+                    <div class="receipt-company">
+                        <h3>@companyName</h3>
+                        <p class="subtitle">( Receipt for Payment )</p>
+                    </div>
+                </div>
+                <hr style="border-bottom: 1px solid #000; margin: 10px 0;" />
+                <div class="receipt-two-col">
+                    <div>
+                        <div>UID: @(receiptPatient?.UID ?? "") / MRD No: @(receiptPatient?.MRDNo ?? "")</div>
+                        <div>Name: @(receiptPatient?.PatientName ?? "")</div>
+                        <div>Gender: @(receiptPatient?.Gender ?? "")</div>
+                        <div>Mobile No: @(receiptPatient?.MobileNo ?? "")</div>
+                    </div>
+                    <div>
+                        <div>Reciept No: @receiptNo</div>
+                        <div>Reciept Date: @receiptDate</div>
+                        <div>Age: @(receiptPatient?.Age ?? "")</div>
+                        <div>Address: @(receiptPatient?.PatientAddress ?? "")</div>
+                    </div>
+                </div>
+                <hr style="border-bottom: 1px solid #000; margin: 10px 0;" />
+                <table class="receipt-table">
+                    <thead>
+                        <tr>
+                            <th>S No</th>
+                            <th>Investigation</th>
+                            <th>Rate</th>
+                            <th>Discount</th>
+                            <th>Payable (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ var sno = 1; decimal totalRate = 0, totalDisc = 0, totalPay = 0; }
+                        @foreach (var line in receiptLines)
+                        {
+                            totalRate += line.Rate;
+                            totalDisc += line.Discount;
+                            totalPay += line.Amount;
+                            <tr style="line-height: 1.3;">
+                                <td>@(sno++).</td>
+                                <td>@line.Name</td>
+                                <td>@line.Rate.ToString("0.0")</td>
+                                <td>@line.Discount.ToString("0.0")</td>
+                                <td>@line.Amount.ToString("0.0")</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td></td>
+                            <td>Total</td>
+                            <td>@totalRate.ToString("0.0")</td>
+                            <td>@totalDisc.ToString("0.0")</td>
+                            <td><strong>₹@totalPay.ToString("0.0")</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <table style="width: 100%; margin-top: 12px; font-size: 14px;">
+                    <tr>
+                        <td>Paid:&nbsp;<b>₹@receiptTotal</b></td>
+                        <td>Mode of Payment:&nbsp;<b>@receiptPaymentMode</b></td>
+                        <td>Recived By:&nbsp;<b>@(ViewBag.UserFullName ?? "")</b></td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" style="padding-top: 6px;"><b>@receiptFreeTypeName On Rs.@receiptTotal</b></td>
+                    </tr>
+                </table>
+                <div class="receipt-remarks-box">
+                    <div><strong>Remarks:</strong> @(ViewBag.RecpRemarks as string ?? "")</div>
+                    <div style="margin-top: 4px;"><strong>Online Transaction Details:</strong> @receiptTransactionNo</div>
+                    @if (!string.IsNullOrEmpty(receiptPatient?.UID))
+                    {
+                        <img src="~/QRCode/@(receiptPatient.UID).png" alt="QR" class="img-fluid" width="80" height="80" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);" onerror="this.style.display='none'" />
+                    }
+                </div>
+                </div>
+            </div>
+            <script>
+                document.getElementById('btnPrint')?.addEventListener('click', function() { window.print(); });
+            </script>
+        }
+        else
+        {
+        <div>
+            <fieldset style="padding: 10px; border: 1px solid #eee">
+                <legend style="width: auto; font-size: 16px">Patient Details</legend>
+                <div class="row">
+                    <div class="col-md-2">
+                        <div class="input-group input-group-sm mb-3">
+                            <label class="input-group-text">UID</label>
+                            <input type="text" class="form-control" readonly value="@(patient?.UID ?? "")" style="background-color: #fff;" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="input-group input-group-sm mb-3">
+                            <label class="input-group-text">Patient Name</label>
+                            <input type="text" class="form-control" readonly value="@(patient?.PatientName ?? "")" style="background-color: #fff;" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="input-group input-group-sm mb-3">
+                            <label class="input-group-text">Patient Type</label>
+                            <input type="text" class="form-control" readonly value="@patientTypeDisplay" style="background-color: #fff;" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-group input-group-sm mb-3">
+                            <label class="input-group-text">Address</label>
+                            <input type="text" class="form-control" readonly value="@(patient?.PatientAddress ?? "")" style="background-color: #fff;" />
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            <br />
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="col-md-12">
+                        <div>All</div>
+                        <select class="form-select" id="listBoxAll" size="15" style="overflow-y: scroll; height: 300px; width: 100%;">
+                            @foreach (var t in allTestsList)
+                            {
+                                <option value="@t.Id" data-rate="@t.Rate">@t.Name</option>
+                            }
+                        </select>
+                        <div style="padding: 7px 2px; display: flex; justify-content: flex-end;">
+                            <button type="button" class="btn btn-sm btn-success" id="btnSelectTest">Select Test</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-9">
+                    <div class="col-md-12">
+                        <table class="table table-bordered table-sm table-selected-tests" style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 45px;">S No.</th>
+                                    <th>Test Name</th>
+                                    <th style="width: 150px;">Test Rate</th>
+                                    <th style="width: 80px; text-align: center;">Make Free</th>
+                                    <th style="width: 80px; text-align: center;">Remove</th>
+                                    <th style="width: 150px;">Actual Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodySelectedTests">
+                                <tr id="rowEmpty"><td colspan="6" class="text-center"><h4>No Test Selected Yet...</h4></td></tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td></td>
+                                    <td style="text-align: end;">Total</td>
+                                    <td id="footTotalRate">0</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td id="footTotalAmount">0</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <br />
+                        <div id="billingDetailsSection" style="display: none;">
+                            <fieldset style="padding: 10px; border: 1px solid #eee">
+                                <legend style="width: auto; font-size: 16px">Billing Details</legend>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="input-group input-group-sm mb-3">
+                                            <label class="input-group-text">GR Type</label>
+                                            <select class="form-select" id="ddFreeType">
+                                                <option value="-1" selected>Select</option>
+                                                <option value="0">Full Paid</option>
+                                                <option value="1">25% Discount</option>
+                                                <option value="2">50% Discount</option>
+                                                <option value="3">75% Discount</option>
+                                                <option value="4">Free</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <div class="input-group input-group-sm mb-3">
+                                            <label class="input-group-text">Total Bill Amount</label>
+                                            <input type="text" class="form-control" id="txtBillAmount" readonly placeholder="Amount" style="background-color: #fff;" />
+                                            <input type="text" class="form-control" id="txtBillAmountPMJAY" readonly placeholder="Amount For PMJAY" style="background-color: #fff;" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="input-group input-group-sm mb-3">
+                                            <label class="input-group-text">Payment Method</label>
+                                            <select class="form-select" id="ddlMode">
+                                                <option value="0" selected>Select</option>
+                                                <option value="Cash">Cash</option>
+                                                <option value="Transfer">Transfer</option>
+                                                <option value="Free">Free</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="input-group input-group-sm mb-3">
+                                            <label class="input-group-text">Remarks</label>
+                                            <input type="text" class="form-control" id="txtRemarks" placeholder="Remarks" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="input-group input-group-sm mb-3">
+                                            <label class="input-group-text">Transaction No:</label>
+                                            <input type="text" class="form-control" id="txtTransactionNo" placeholder="Online Transaction No." />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row" style="display: flex; justify-content: flex-end;">
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-sm btn-success btn-block" id="btnSaveBill">Save Bill</button>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    (function() {
+        var listBoxAll = document.getElementById('listBoxAll');
+        if (!listBoxAll) return; // Receipt view - no form
+        var tbody = document.getElementById('tbodySelectedTests');
+        var rowEmpty = document.getElementById('rowEmpty');
+        var footTotalRate = document.getElementById('footTotalRate');
+        var footTotalAmount = document.getElementById('footTotalAmount');
+        var billingSection = document.getElementById('billingDetailsSection');
+        var txtBillAmount = document.getElementById('txtBillAmount');
+        var txtBillAmountPMJAY = document.getElementById('txtBillAmountPMJAY');
+        var ddFreeType = document.getElementById('ddFreeType');
+        var selectedTests = []; // { id, name, rate, amount } - amount = payable (can change with Make Free / GR Type)
+
+        document.getElementById('btnSelectTest')?.addEventListener('click', function() {
+            var opt = listBoxAll.options[listBoxAll.selectedIndex];
+            if (!opt || !opt.value) return;
+            var id = opt.value;
+            var name = opt.text;
+            var rate = opt.getAttribute('data-rate') || '0';
+            if (selectedTests.some(function(t) { return t.id === id; })) return;
+            selectedTests.push({ id: id, name: name, rate: rate, amount: rate, isFree: false });
+            renderGrid();
+        });
+
+        function getTotalAmount() {
+            var sum = 0;
+            selectedTests.forEach(function(t) { sum += parseFloat(t.amount) || 0; });
+            return sum;
+        }
+
+        function getTotalRate() {
+            var sum = 0;
+            selectedTests.forEach(function(t) { sum += parseFloat(t.rate) || 0; });
+            return sum;
+        }
+
+        function applyGRType() {
+            var grVal = ddFreeType.value;
+            var totalRate = getTotalRate();
+            var totalAmount = totalRate;
+            if (grVal === '1') totalAmount = totalRate * 0.75;
+            else if (grVal === '2') totalAmount = totalRate * 0.5;
+            else if (grVal === '3') totalAmount = totalRate * 0.25;
+            else if (grVal === '4') totalAmount = 0;
+            selectedTests.forEach(function(t) {
+                if (grVal === '4') t.amount = '0';
+                else if (grVal === '1' || grVal === '2' || grVal === '3') {
+                    var pct = grVal === '1' ? 0.75 : grVal === '2' ? 0.5 : 0.25;
+                    t.amount = (parseFloat(t.rate) * pct).toFixed(2);
+                } else t.amount = t.rate;
+            });
+            renderGrid();
+        }
+
+        ddFreeType.addEventListener('change', function() {
+            if (selectedTests.length === 0) return;
+            var grVal = ddFreeType.value;
+            if (grVal === '1') selectedTests.forEach(function(t) { t.amount = (parseFloat(t.rate) * 0.75).toFixed(2); });
+            else if (grVal === '2') selectedTests.forEach(function(t) { t.amount = (parseFloat(t.rate) * 0.5).toFixed(2); });
+            else if (grVal === '3') selectedTests.forEach(function(t) { t.amount = (parseFloat(t.rate) * 0.25).toFixed(2); });
+            else if (grVal === '4') selectedTests.forEach(function(t) { t.amount = '0'; });
+            else selectedTests.forEach(function(t) { t.amount = t.rate; });
+            renderGrid();
+        });
+
+        function renderGrid() {
+            if (selectedTests.length === 0) {
+                rowEmpty.style.display = '';
+                tbody.querySelectorAll('tr:not(#rowEmpty)').forEach(function(r) { r.remove(); });
+                footTotalRate.textContent = '0';
+                footTotalAmount.textContent = '0';
+                billingSection.style.display = 'none';
+                return;
+            }
+            rowEmpty.style.display = 'none';
+            tbody.querySelectorAll('tr:not(#rowEmpty)').forEach(function(r) { r.remove(); });
+            var totalRate = 0, totalAmount = 0;
+            selectedTests.forEach(function(t, i) {
+                totalRate += parseFloat(t.rate) || 0;
+                totalAmount += parseFloat(t.amount) || 0;
+                var tr = document.createElement('tr');
+                tr.setAttribute('data-id', t.id);
+                tr.innerHTML = '<td>' + (i + 1) + '</td><td>' + t.name + '</td><td><input type="text" class="form-control form-control-sm txt-rate" readonly value="' + t.rate + '" style="background-color:#fff" /></td><td style="text-align:center"><span class="text-muted">Free/Paid</span></td><td style="text-align:center"><a href="#" class="btn-remove" data-id="' + t.id + '"><span style="font-size:18px;color:red">X</span></a></td><td><input type="text" class="form-control form-control-sm txt-amount" readonly value="' + t.amount + '" style="background-color:#fff" /></td>';
+                tbody.appendChild(tr);
+            });
+            footTotalRate.textContent = totalRate.toFixed(2);
+            footTotalAmount.textContent = totalAmount.toFixed(2);
+            txtBillAmount.value = totalAmount.toFixed(2);
+            txtBillAmountPMJAY.value = totalAmount.toFixed(2);
+            billingSection.style.display = 'block';
+
+            tbody.querySelectorAll('.btn-remove').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var id = btn.getAttribute('data-id');
+                    selectedTests = selectedTests.filter(function(t) { return t.id !== id; });
+                    renderGrid();
+                });
+            });
+        }
+
+        tbody.addEventListener('click', function(e) {
+            if (e.target.closest('.btn-remove')) {
+                e.preventDefault();
+                var id = e.target.closest('.btn-remove').getAttribute('data-id');
+                selectedTests = selectedTests.filter(function(t) { return t.id !== id; });
+                renderGrid();
+            }
+        });
+
+        document.getElementById('btnSaveBill')?.addEventListener('click', function() {
+            if (ddFreeType.value === '-1') { alert('Select GR Type!'); ddFreeType.focus(); return; }
+            if (document.getElementById('ddlMode').value === '0') { alert('Select Payment Method!'); return; }
+            var amt = txtBillAmount.value;
+            if (!confirm('Are you sure you want to save the current receipt for amount ₹' + amt + '?')) return;
+
+            var payload = {
+                tests: selectedTests.map(function(t) { return { testId: t.id, name: t.name, rate: parseFloat(t.rate) || 0, amount: parseFloat(t.amount) || 0 }; }),
+                freeType: ddFreeType.value,
+                paymentMode: document.getElementById('ddlMode').value,
+                totalAmount: parseFloat(amt) || 0,
+                remarks: document.getElementById('txtRemarks').value || '',
+                transactionNo: document.getElementById('txtTransactionNo').value || ''
+            };
+            var btn = document.getElementById('btnSaveBill');
+            btn.disabled = true;
+            fetch('@Url.Action("SaveBill", "Registration")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || '' },
+                body: JSON.stringify(payload)
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                btn.disabled = false;
+                if (data.success && data.redirect) {
+                    window.location.href = data.redirect;
+                } else {
+                    alert(data.message || 'Failed to save bill.');
+                }
+            }).catch(function() {
+                btn.disabled = false;
+                alert('Request failed.');
+            });
+        });
+    })();
+</script>
+}

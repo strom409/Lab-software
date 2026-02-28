@@ -1,0 +1,67 @@
+@model EasioCore.Models.User
+@{
+    ViewData["Title"] = "Login";
+    Layout = "~/Views/Shared/_LoginLayout.cshtml";
+    var step = ViewBag.Step as int? ?? 0;
+    var companyName = ViewBag.CompanyName as string ?? "Lab Software";
+}
+
+<div class="card shadow">
+    <div class="card-body p-4">
+        <div class="login-logo">
+            <img src="~/logo/logo.png" alt="Logo" class="img-fluid mb-2" style="max-height: 80px;" />
+            <a href="#" class="company-name d-block">@companyName</a>
+        </div>
+
+        <h5 class="text-center mb-4">@(step == 0 ? "Login" : "Confirm OTP")</h5>
+
+        @if (ViewBag.Message != null)
+        {
+            <div class="alert alert-danger py-2" role="alert">@ViewBag.Message</div>
+        }
+
+        @if (step == 0)
+        {
+            <form asp-controller="Auth" asp-action="Login" method="post" id="loginForm">
+                @Html.AntiForgeryToken()
+                <div class="input-group mb-3">
+                    <input asp-for="UserName" class="form-control" placeholder="User ID" autocomplete="off" required />
+                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                </div>
+                <div class="input-group mb-3">
+                    <input asp-for="UserPassword" type="password" class="form-control" placeholder="Password" required />
+                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                </div>
+                <button type="submit" class="btn btn-primary w-100" id="btnSignIn">Sign in</button>
+            </form>
+        }
+        else
+        {
+            <p class="text-muted small mb-3">Check Your Mail Inbox/Spam folder for OTP</p>
+            <form asp-action="ConfirmOTP" method="post">
+                @Html.AntiForgeryToken()
+                <div class="input-group mb-3">
+                    <input type="password" name="confirmOtp" id="confirmOtp" class="form-control" placeholder="Confirm OTP Here" required />
+                    <span class="input-group-text"><i class="fas fa-key"></i></span>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success flex-grow-1">Confirm OTP</button>
+                    <a asp-action="BackToLogin" class="btn btn-warning">Back To Login</a>
+                </div>
+            </form>
+        }
+    </div>
+    <div class="powered-by">
+        <p class="mb-0 small"><strong>Powered By</strong></p>
+        <p class="mb-0 small"><a href="https://nationalitsolutions.com/" target="_blank">National IT Solutions</a></p>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.getElementById('loginForm')?.addEventListener('submit', function() {
+        var btn = document.getElementById('btnSignIn');
+        if (btn) { btn.disabled = true; btn.textContent = 'Signing in...'; }
+    });
+</script>
+}

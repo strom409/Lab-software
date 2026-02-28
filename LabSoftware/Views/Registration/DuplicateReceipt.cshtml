@@ -1,0 +1,137 @@
+@{
+    ViewData["Title"] = "Duplicate Receipt";
+    Layout = "~/Views/Shared/_RegistrationLayout.cshtml";
+    var searchBy = ViewBag.SearchBy as string ?? "-1";
+    var searchValue = ViewBag.SearchValue as string ?? "";
+    var dateFrom = ViewBag.DateFrom as string ?? "";
+    var dateTo = ViewBag.DateTo as string ?? "";
+    var receipts = ViewBag.Receipts as List<EasioCore.Models.DupReceipt> ?? new List<EasioCore.Models.DupReceipt>();
+    var msgType = TempData["MsgType"] as string;
+    var msgAlert = TempData["MsgAlert"] as string;
+}
+<div class="card card-outline card-info shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Search Receipt</h5>
+        <a asp-action="Index" class="btn btn-danger btn-sm"><i class="fas fa-backward"></i> Back</a>
+    </div>
+    <div class="card-body">
+        @if (!string.IsNullOrEmpty(msgType))
+        {
+            <div id="msgDiv" class="alert alert-@(msgType == "success" ? "success" : msgType == "warning" ? "warning" : "danger") alert-dismissible">
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                @msgAlert
+            </div>
+        }
+        <form method="get" asp-action="DuplicateReceipt" class="mb-4">
+            <fieldset class="border rounded p-3">
+                <legend class="w-auto" style="font-size: 1rem;">Search Receipt</legend>
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small">Search By</label>
+                        <select name="searchBy" id="searchBy" class="form-select form-select-sm">
+                            <option value="-1">Select</option>
+                            <option value="0" selected="@(searchBy == "0")">Receipt No</option>
+                            <option value="2" selected="@(searchBy == "2")">Patient UID</option>
+                            <option value="1" selected="@(searchBy == "1")">Date</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3" id="divReceiptNo">
+                        <label class="form-label small">Receipt No</label>
+                        <input type="text" name="searchValue" id="searchValue" class="form-control form-control-sm" placeholder="Receipt No" value="@searchValue" />
+                    </div>
+                    <div class="col-md-3 d-none" id="divPUID">
+                        <label class="form-label small">Patient UID</label>
+                        <input type="text" class="form-control form-control-sm" placeholder="Patient UID" id="searchValuePUID" value="@searchValue" />
+                    </div>
+                    <div class="col-md-2 d-none" id="divDateFrom">
+                        <label class="form-label small">Date From</label>
+                        <input type="text" name="dateFrom" class="form-control form-control-sm" placeholder="dd-MM-yyyy" value="@dateFrom" />
+                    </div>
+                    <div class="col-md-2 d-none" id="divDateTo">
+                        <label class="form-label small">Date To</label>
+                        <input type="text" name="dateTo" class="form-control form-control-sm" placeholder="dd-MM-yyyy" value="@dateTo" />
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-success btn-sm w-100">Search</button>
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+
+        @if (receipts.Count > 0)
+        {
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>S No.</th>
+                            <th>Receipt No</th>
+                            <th>Receipt Date</th>
+                            <th>Patient Name</th>
+                            <th>Mode</th>
+                            <th>Amount</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (var i = 0; i < receipts.Count; i++)
+                        {
+                            var r = receipts[i];
+                            <tr>
+                                <td>@(i + 1)</td>
+                                <td>@r.ReceiptNo</td>
+                                <td>@r.ReceiptDate</td>
+                                <td>@r.PName</td>
+                                <td>@r.ReceiptMode</td>
+                                <td>@r.Amt</td>
+                                <td>
+                                    <a asp-action="DuplicateReceiptPrint" asp-route-rid="@r.ReceiptID" class="btn btn-info btn-sm" target="_blank">Print</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else if (!string.IsNullOrEmpty(searchBy) && searchBy != "-1")
+        {
+            <p class="text-muted">No receipts found.</p>
+        }
+    </div>
+</div>
+@section Scripts {
+<script>
+    (function () {
+        var searchBy = document.getElementById('searchBy');
+        var divReceiptNo = document.getElementById('divReceiptNo');
+        var divPUID = document.getElementById('divPUID');
+        var divDateFrom = document.getElementById('divDateFrom');
+        var divDateTo = document.getElementById('divDateTo');
+        function toggle() {
+            var v = searchBy.value;
+            divReceiptNo.classList.add('d-none');
+            divPUID.classList.add('d-none');
+            divDateFrom.classList.add('d-none');
+            divDateTo.classList.add('d-none');
+            var searchVal = document.getElementById('searchValue');
+            var searchValPUID = document.getElementById('searchValuePUID');
+            if (v === '0') {
+                divReceiptNo.classList.remove('d-none');
+                searchVal.name = 'searchValue';
+                searchValPUID.removeAttribute('name');
+            } else if (v === '2') {
+                divPUID.classList.remove('d-none');
+                searchValPUID.name = 'searchValue';
+                searchVal.removeAttribute('name');
+            } else if (v === '1') {
+                divDateFrom.classList.remove('d-none');
+                divDateTo.classList.remove('d-none');
+                searchVal.removeAttribute('name');
+                searchValPUID.removeAttribute('name');
+            }
+        }
+        searchBy.addEventListener('change', toggle);
+        toggle();
+    })();
+</script>
+}

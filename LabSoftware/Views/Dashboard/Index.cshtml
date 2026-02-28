@@ -1,0 +1,115 @@
+@using EasioCore.Models
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var leftMenu = ViewBag.LeftMenu as List<LeftMenu> ?? new List<LeftMenu>();
+    var activeUsers = ViewBag.ActiveUsers as List<ActiveUsers> ?? new List<ActiveUsers>();
+    var userMessages = ViewBag.UserMessages as List<UserMessageBox> ?? new List<UserMessageBox>();
+    var notices = ViewBag.Notices as List<DashBNotice> ?? new List<DashBNotice>();
+    var dash = ViewBag.DashDetails as DashDetails ?? new DashDetails();
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1 class="page-title">Dashboard</h1>
+        <hr />
+        <div class="alert alert-success">
+            <strong>Welcome, @Context.Session.GetString("UserFullName")!</strong> You have successfully logged in.
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">Total Patients</h5>
+                <h3>@(dash.TotalPt ?? "--")</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h5 class="card-title">CT Patients</h5>
+                <h3>@(dash.CTpt ?? "--")</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">MRI Patients</h5>
+                <h3>@(dash.MRIpt ?? "--")</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <h5 class="card-title">X-Ray Patients</h5>
+                <h3>@(dash.XrayPt ?? "--")</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">OPG Patients</h5>
+                <h3>@(dash.OPGpt ?? "--")</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h5 class="card-title">BMB Patients</h5>
+                <h3>@(dash.BMDPt ?? "--")</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">USG Patients</h5>
+                <h3>@(dash.USGPt ?? "--")</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <h5 class="card-title">Cancelled Receipts</h5>
+                <h3>@(dash.TotalCanceleed ?? "--")</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (leftMenu.Count > 0)
+{
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Menu</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="nav flex-column">
+                        @foreach (var item in leftMenu)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @item.aClass" href="@item.aHref">
+                                    <i class="@item.iClass"></i> @item.pVal
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+}

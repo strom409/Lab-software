@@ -1,0 +1,90 @@
+@using EasioCore.Models
+@{
+    Layout = "~/Views/Shared/_RegistrationLayout.cshtml";
+    ViewData["Title"] = "Duplicate Receipt";
+    var pd = ViewBag.PatientData as PatientData;
+    var companyName = ViewBag.CompanyName as string ?? "Easio Lab Software";
+    if (pd == null) { return; }
+    var patient = pd.Patient;
+    var receipt = pd.Receipt;
+    var lines = pd.PTDetail ?? new List<PatientTestDetail>();
+}
+<style>
+    .receipt-panel { border: 1px solid #ddd; padding: 20px; background: #fff; margin: 0; text-align: left; max-width: 210mm; width: 100%; box-sizing: border-box; }
+    .receipt-section-wrap { max-width: 210mm; width: 100%; }
+    .receipt-header-row { display: flex; align-items: center; justify-content: flex-start; gap: 15px; margin-bottom: 8px; }
+    .receipt-logo { height: 80px; width: 80px; flex-shrink: 0; }
+    .receipt-company h3 { font-family: 'Times New Roman', serif; font-weight: 600; margin-bottom: 0; font-size: 1.35rem; }
+    .receipt-two-col { display: flex; justify-content: space-between; padding: 0 10px; margin: 10px 0; }
+    .receipt-two-col > div { flex: 1; }
+    .receipt-table { width: 100%; text-align: left; border-collapse: collapse; font-size: 14px; }
+    .receipt-table th { border-bottom: 1px solid #eee; padding: 6px 8px; }
+    .receipt-table td { padding: 5px 8px; }
+    .receipt-table tfoot tr { border-top: 1px solid #eee; font-weight: bold; }
+    @@media print { .no-print { display: none !important; } }
+</style>
+
+<div class="receipt-section-wrap">
+    <div class="no-print mb-3">
+        <a asp-action="DuplicateReceipt" class="btn btn-danger btn-sm"><i class="fas fa-backward"></i> Back</a>
+        <button type="button" class="btn btn-info btn-sm ms-2" onclick="window.print();"><i class="fas fa-print"></i> Print</button>
+    </div>
+    <div id="receiptDocument" class="receipt-panel">
+        <div class="receipt-header-row">
+            <img src="~/logo/logo.png" alt="" class="receipt-logo" />
+            <div class="receipt-company">
+                <h3>@companyName</h3>
+                <p class="subtitle">( Duplicate Receipt )</p>
+            </div>
+        </div>
+        <hr style="border-bottom: 1px solid #000; margin: 10px 0;" />
+        <div class="receipt-two-col">
+            <div>
+                <div>UID: @(patient?.UID ?? "") / MRD No: @(patient?.MRDNo ?? "")</div>
+                <div>Name: @(patient?.PatientName ?? "")</div>
+                <div>Gender: @(patient?.Gender ?? "")</div>
+                <div>Mobile No: @(patient?.MobileNo ?? "")</div>
+            </div>
+            <div>
+                <div>Reciept No: @(receipt?.ReceiptNo ?? pd.ReceiptNo ?? "")</div>
+                <div>Reciept Date: @(receipt?.ReceiptDate.HasValue == true ? receipt.ReceiptDate.Value.ToString("dd-MM-yyyy") : "")</div>
+                <div>Age: @(patient?.Age ?? "")</div>
+                <div>Address: @(patient?.PatientAddress ?? "")</div>
+            </div>
+        </div>
+        <hr style="border-bottom: 1px solid #000; margin: 10px 0;" />
+        <table class="receipt-table">
+            <thead>
+                <tr>
+                    <th>S No</th>
+                    <th>Investigation</th>
+                    <th>Rate</th>
+                    <th>Discount</th>
+                    <th>Payable (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ var sno = 1; decimal totalPay = 0; }
+                @foreach (var line in lines)
+                {
+                    var amt = decimal.TryParse(line.Amount, out var a) ? a : 0;
+                    totalPay += amt;
+                    <tr>
+                        <td>@(sno++)</td>
+                        <td>@(line.TestName ?? "")</td>
+                        <td>@(line.Rate)</td>
+                        <td>@(line.Discount)</td>
+                        <td>@amt</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr><td colspan="4">Total</td><td>@totalPay</td></tr>
+            </tfoot>
+        </table>
+        <div class="mt-3">
+            <div>Paid / Mode of Payment: @(receipt?.ReceiptMode ?? "")</div>
+            <div>Received By: @(receipt?.UserName ?? "")</div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,251 @@
+@using EasioCore.Models
+@{
+    ViewData["Title"] = "Patient Registration";
+    Layout = "~/Views/Shared/_RegistrationLayout.cshtml";
+    var hospitals = ViewBag.Hospitals as List<Hospital> ?? new List<Hospital>();
+    var districts = ViewBag.Districts as List<District> ?? new List<District>();
+    var today = DateTime.Now.ToString("dd-MM-yyyy");
+}
+
+<style>
+    /* Bigger modal, centered vertically and horizontally */
+    #patientRegistrationModal.modal .modal-dialog {
+        max-width: 920px;
+        width: 92%;
+        margin: auto;
+    }
+    #patientRegistrationModal.modal {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100%;
+        padding: 1rem;
+    }
+    #patientRegistrationModal .modal-content {
+        border-radius: 8px;
+        box-shadow: 0 5px 25px rgba(0,0,0,.25);
+    }
+    #patientRegistrationModal .modal-body {
+        padding: 1.25rem 1.5rem;
+    }
+    #patientRegistrationModal .modal-body .input-group {
+        margin-bottom: 0.85rem;
+    }
+    #patientRegistrationModal .input-group-text {
+        min-width: 120px;
+        justify-content: flex-start;
+    }
+</style>
+
+<div class="card card-outline card-info">
+    <div class="card-header">
+        <h3 class="card-title">Patient Registration</h3>
+    </div>
+    <div class="card-body">
+        <fieldset class="p-3 border rounded">
+            <legend class="w-auto" style="font-size: 16px">Patient Registration</legend>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="input-group input-group-sm mb-3">
+                        <label class="input-group-text">Lab / Centre</label>
+                        <select class="form-select" id="ddlLabCentre" name="labCentre">
+                            <option value="0">-- Select --</option>
+                            @foreach (var h in hospitals)
+                            {
+                                <option value="@h.HID">@h.HName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#patientRegistrationModal">Register New Patient</button>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+</div>
+
+@if (TempData["MsgAlert"] != null)
+{
+    var msgType = TempData["MsgType"] as string ?? "info";
+    var cssClass = msgType == "success" ? "alert-success" : msgType == "warning" ? "alert-warning" : "alert-danger";
+    <div class="alert @cssClass alert-dismissible fade show" role="alert">
+        @TempData["MsgAlert"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Patient Registration Modal (same as web form - form POST like Anantnag btnRegister_Click) -->
+<div class="modal fade" id="patientRegistrationModal" tabindex="-1" aria-labelledby="patientModalLabel" aria-hidden="true" data-bs-backdrop="static" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" asp-action="RegisterPatient" id="formRegisterPatient">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="HIDFK" id="hidHIDFK" value="" />
+                <div class="modal-header">
+                    <h5 class="modal-title" id="patientModalLabel">Patient Registration</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text">Patient Name</label>
+                                <input type="text" class="form-control" id="txtPatientName" name="PatientName" placeholder="Patient Name" required />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text">Parentage</label>
+                                <input type="text" class="form-control" id="txtParentage" name="Parentage" placeholder="Parentage" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text">Gender</label>
+                                <select class="form-select" id="ddlGender" name="Gender" required>
+                                    <option value="0">Select</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text">Mobile Number</label>
+                                <input type="text" class="form-control" id="txtMobileNumber" name="MobileNumber" placeholder="Mobile No" required />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text">Age</label>
+                                <input type="text" class="form-control" id="txtAge" name="Age" placeholder="Age" required />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text">Age Type</label>
+                                <select class="form-select" id="ddlAgeType" name="AgeType">
+                                    <option value="Years" selected>Years</option>
+                                    <option value="Months">Months</option>
+                                    <option value="Days">Days</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text">Address</label>
+                                <input type="text" class="form-control" id="txtAddress" name="Address" placeholder="Address" required />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text">District</label>
+                                <select class="form-select" id="ddlDistrict" name="DistrictId" required>
+                                    <option value="0">Select</option>
+                                    @foreach (var d in districts)
+                                    {
+                                        <option value="@(d.districtId ?? "")">@(d.districtName ?? "")</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text">Date</label>
+                                <input type="text" class="form-control" id="txtDate" name="Date" readonly value="@today" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text">MRD/OPD No.</label>
+                                <input type="text" class="form-control" id="txtMrdOpdNo" name="MrdOpdNo" placeholder="MRD/OPD No." required />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" id="btnRegisterSubmit">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    (function() {
+        var modal = document.getElementById('patientRegistrationModal');
+        var ddlLab = document.getElementById('ddlLabCentre');
+        var hidHIDFK = document.getElementById('hidHIDFK');
+        if (modal && ddlLab && hidHIDFK) {
+            modal.addEventListener('show.bs.modal', function() {
+                hidHIDFK.value = ddlLab.value || '0';
+            });
+            // Fix aria-hidden: set false when modal is shown so focused content isn’t hidden from AT
+            modal.addEventListener('shown.bs.modal', function() {
+                modal.setAttribute('aria-hidden', 'false');
+                modal.removeAttribute('inert');
+            });
+            modal.addEventListener('hide.bs.modal', function() {
+                modal.setAttribute('inert', '');
+            });
+            modal.addEventListener('hidden.bs.modal', function() {
+                modal.setAttribute('aria-hidden', 'true');
+            });
+        }
+        // Ensure correct state on load (modal closed)
+        if (modal) {
+            modal.setAttribute('aria-hidden', 'true');
+            modal.setAttribute('inert', '');
+        }
+        document.getElementById('formRegisterPatient')?.addEventListener('submit', function(e) {
+            var lab = document.getElementById('ddlLabCentre').value;
+            if (!lab || lab === '0') {
+                e.preventDefault();
+                alert('Please select Lab / Centre first.');
+                return false;
+            }
+            var district = document.getElementById('ddlDistrict').value;
+            if (!district || district === '0') {
+                e.preventDefault();
+                alert('Please select District.');
+                return false;
+            }
+            if (document.getElementById('ddlGender').value === '0') {
+                e.preventDefault();
+                alert('Please select Gender.');
+                return false;
+            }
+        });
+
+        // Enter key: move focus to next field (same order as form)
+        var form = document.getElementById('formRegisterPatient');
+        if (form) {
+            var focusableIds = ['txtPatientName', 'txtParentage', 'ddlGender', 'txtMobileNumber', 'txtAge', 'ddlAgeType', 'txtAddress', 'ddlDistrict', 'txtMrdOpdNo'];
+            form.addEventListener('keydown', function(e) {
+                if (e.key !== 'Enter') return;
+                var target = e.target;
+                if (target.tagName === 'BUTTON' && (target.type === 'submit' || target.getAttribute('data-bs-dismiss'))) return;
+                var id = target.id;
+                var idx = focusableIds.indexOf(id);
+                if (idx === -1) return;
+                e.preventDefault();
+                if (idx < focusableIds.length - 1) {
+                    var next = document.getElementById(focusableIds[idx + 1]);
+                    if (next) next.focus();
+                } else {
+                    document.getElementById('btnRegisterSubmit').focus();
+                }
+            });
+        }
+    })();
+</script>
+}
