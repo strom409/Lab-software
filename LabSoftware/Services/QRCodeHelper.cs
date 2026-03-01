@@ -5,10 +5,7 @@ namespace EasioCore.BLL
 {
     public static class QRCodeHelper
     {
-        /// <summary>
-        /// Same as Anantnag: generates QR code PNG and saves to wwwroot/QRCode/{fileName}.png.
-        /// Returns the relative path for use in img src e.g. ~/QRCode/1533.png
-        /// </summary>
+        
         public static string GenerateQRCodeReceipt(string qrText, string fileName, string webRootPath)
         {
             if (string.IsNullOrEmpty(webRootPath)) return null;

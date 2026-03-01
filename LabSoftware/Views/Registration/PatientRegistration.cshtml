@@ -16,6 +16,7 @@
     var receiptPatient = ViewBag.ReceiptPatient as SMHSData;
     var receiptFreeTypeName = ViewBag.ReceiptFreeTypeName as string ?? "Full Paid";
     var receiptTransactionNo = ViewBag.ReceiptTransactionNo as string ?? "";
+    var receiptSubtitle = ViewBag.ReceiptSubtitle as string ?? "";
 }
 
 <style>
@@ -37,7 +38,14 @@
     .receipt-table td { padding: 5px 8px; }
     .receipt-table tfoot tr { border-top: 1px solid #eee; font-weight: bold; }
     .receipt-remarks-box { border: 1px solid #333; border-radius: 8px; padding: 10px; margin-top: 12px; text-align: left; min-height: 50px; position: relative; }
-    @@media print { .no-print { display: none !important; } .receipt-panel { box-shadow: none; } }
+    /* Print: show only receipt (like screenshot 3 - print dialog) */
+    @@media print {
+        nav.main-header, .card .card-header, .reg-footer, footer, .no-print { display: none !important; }
+        .card, .card-body { border: none !important; box-shadow: none !important; background: transparent !important; }
+        .card-body { padding: 0 !important; }
+        .receipt-section-wrap { margin: 0; padding: 0; }
+        .receipt-panel { box-shadow: none; border: 1px solid #333; }
+    }
 </style>
 
 @if (showReceipt)
@@ -87,7 +95,11 @@
                     <img src="~/logo/logo.png" alt="" class="receipt-logo" />
                     <div class="receipt-company">
                         <h3>@companyName</h3>
-                        <p class="subtitle">( Receipt for Payment )</p>
+                        @if (!string.IsNullOrEmpty(receiptSubtitle))
+                        {
+                            <p class="subtitle">@receiptSubtitle</p>
+                        }
+                        <p class="subtitle" style="margin-bottom: 0;">(Receipt for Payment)</p>
                     </div>
                 </div>
                 <hr style="border-bottom: 1px solid #000; margin: 10px 0;" />
@@ -135,9 +147,9 @@
                     <tfoot>
                         <tr>
                             <td></td>
-                            <td>Total</td>
-                            <td>@totalRate.ToString("0.0")</td>
-                            <td>@totalDisc.ToString("0.0")</td>
+                            <td><strong>Total</strong></td>
+                            <td><strong>@totalRate.ToString("0.0")</strong></td>
+                            <td><strong>@totalDisc.ToString("0.0")</strong></td>
                             <td><strong>₹@totalPay.ToString("0.0")</strong></td>
                         </tr>
                     </tfoot>
@@ -154,10 +166,11 @@
                 </table>
                 <div class="receipt-remarks-box">
                     <div><strong>Remarks:</strong> @(ViewBag.RecpRemarks as string ?? "")</div>
-                    <div style="margin-top: 4px;"><strong>Online Transaction Details:</strong> @receiptTransactionNo</div>
+                    <div style="margin-top: 8px;"><strong>Online Transaction Details:</strong></div>
+                    <div style="margin-top: 4px; min-height: 24px; border: 1px solid #ccc; padding: 4px 8px; background: #fafafa;">@receiptTransactionNo</div>
                     @if (!string.IsNullOrEmpty(receiptPatient?.UID))
                     {
-                        <img src="~/QRCode/@(receiptPatient.UID).png" alt="QR" class="img-fluid" width="80" height="80" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);" onerror="this.style.display='none'" />
+                        <img src="~/QRCode/@(receiptPatient.UID).png" alt="QR" width="80" height="80" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);" onerror="this.style.display='none'" />
                     }
                 </div>
                 </div>

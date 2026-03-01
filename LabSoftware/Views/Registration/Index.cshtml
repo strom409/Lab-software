@@ -8,10 +8,10 @@
 }
 
 <style>
-    /* Bigger modal, centered vertically and horizontally */
+    /* Larger popup */
     #patientRegistrationModal.modal .modal-dialog {
-        max-width: 920px;
-        width: 92%;
+        max-width: 1100px;
+        width: 96%;
         margin: auto;
     }
     #patientRegistrationModal.modal {
@@ -28,12 +28,33 @@
     #patientRegistrationModal .modal-body {
         padding: 1.25rem 1.5rem;
     }
+    /* Label first, then textbox on same line */
     #patientRegistrationModal .modal-body .input-group {
         margin-bottom: 0.85rem;
+        display: flex;
+        flex-wrap: nowrap;
+        flex-direction: row;
+        align-items: stretch;
     }
-    #patientRegistrationModal .input-group-text {
-        min-width: 120px;
-        justify-content: flex-start;
+    /* Longer textboxes */
+    #patientRegistrationModal .input-group .form-control,
+    #patientRegistrationModal .input-group .form-select {
+        flex: 1 1 auto;
+        min-width: 200px;
+    }
+    #patientRegistrationModal .input-group .input-group-text {
+        min-width: 110px;
+        flex-shrink: 0;
+    }
+    /* Label first: rounded left; input second: rounded right */
+    #patientRegistrationModal .input-group .input-group-text:first-child {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+    #patientRegistrationModal .input-group .form-control:last-child,
+    #patientRegistrationModal .input-group .form-select:last-child {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
     }
 </style>
 
@@ -90,19 +111,19 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="input-group mb-3">
-                                <label class="input-group-text">Patient Name</label>
+                                <label class="input-group-text" for="txtPatientName">Patient Name</label>
                                 <input type="text" class="form-control" id="txtPatientName" name="PatientName" placeholder="Patient Name" required />
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="input-group mb-3">
-                                <label class="input-group-text">Parentage</label>
+                                <label class="input-group-text" for="txtParentage">Parentage</label>
                                 <input type="text" class="form-control" id="txtParentage" name="Parentage" placeholder="Parentage" />
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="input-group mb-3">
-                                <label class="input-group-text">Gender</label>
+                                <label class="input-group-text" for="ddlGender">Gender</label>
                                 <select class="form-select" id="ddlGender" name="Gender" required>
                                     <option value="0">Select</option>
                                     <option value="Male">Male</option>
@@ -114,19 +135,19 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="input-group mb-3">
-                                <label class="input-group-text">Mobile Number</label>
+                                <label class="input-group-text" for="txtMobileNumber">Mobile Number</label>
                                 <input type="text" class="form-control" id="txtMobileNumber" name="MobileNumber" placeholder="Mobile No" required />
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="input-group mb-3">
-                                <label class="input-group-text">Age</label>
+                                <label class="input-group-text" for="txtAge">Age</label>
                                 <input type="text" class="form-control" id="txtAge" name="Age" placeholder="Age" required />
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="input-group mb-3">
-                                <label class="input-group-text">Age Type</label>
+                                <label class="input-group-text" for="ddlAgeType">Age Type</label>
                                 <select class="form-select" id="ddlAgeType" name="AgeType">
                                     <option value="Years" selected>Years</option>
                                     <option value="Months">Months</option>
@@ -138,13 +159,13 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="input-group mb-3">
-                                <label class="input-group-text">Address</label>
+                                <label class="input-group-text" for="txtAddress">Address</label>
                                 <input type="text" class="form-control" id="txtAddress" name="Address" placeholder="Address" required />
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="input-group mb-3">
-                                <label class="input-group-text">District</label>
+                                <label class="input-group-text" for="ddlDistrict">District</label>
                                 <select class="form-select" id="ddlDistrict" name="DistrictId" required>
                                     <option value="0">Select</option>
                                     @foreach (var d in districts)
@@ -156,7 +177,7 @@
                         </div>
                         <div class="col-md-4">
                             <div class="input-group mb-3">
-                                <label class="input-group-text">Date</label>
+                                <label class="input-group-text" for="txtDate">Date</label>
                                 <input type="text" class="form-control" id="txtDate" name="Date" readonly value="@today" />
                             </div>
                         </div>
@@ -164,7 +185,7 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="input-group mb-3">
-                                <label class="input-group-text">MRD/OPD No.</label>
+                                <label class="input-group-text" for="txtMrdOpdNo">MRD/OPD No.</label>
                                 <input type="text" class="form-control" id="txtMrdOpdNo" name="MrdOpdNo" placeholder="MRD/OPD No." required />
                             </div>
                         </div>

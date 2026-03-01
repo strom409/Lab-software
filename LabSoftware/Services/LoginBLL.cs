@@ -74,8 +74,6 @@ namespace EasioCore.BLL
                 session.SetString("OTP", UModel.OTP ?? "");
                 session.SetString("UserName", UModel.UserName ?? "");
 
-                DashBoardBLL.SetStudentDataInSession(session);
-
                 switch (UModel.userTypeID)
                 {
                     case 1: url = "/Dashboard/Index"; break;

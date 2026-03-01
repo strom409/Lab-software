@@ -30,7 +30,6 @@ namespace LabSoftware.Controllers
             {
                 try { ViewBag.CompanyName = HTBLL.CompanyName(); } catch { ViewBag.CompanyName = "Lab Software"; }
 
-                // Get values from form - binding can fail with complex models
                 string userName = Request.Form["UserName"].ToString().Trim();
                 string userPassword = Request.Form["UserPassword"].ToString().Trim();
 
@@ -57,14 +56,12 @@ namespace LabSoftware.Controllers
                     return View(loginUser);
                 }
 
-                // Success: Store redirect URL and show OTP step (same logic as AnantnagRevenueUI)
                 HttpContext.Session.SetString("responsefromAPI", rep);
 
                 string userEmail = HttpContext.Session.GetString("userEmail");
                 string otp = HttpContext.Session.GetString("OTP");
                 string sessionUserName = HttpContext.Session.GetString("UserName");
 
-                // Send OTP via email (same logic as AnantnagRevenueUI)
                 if (!string.IsNullOrEmpty(userEmail) && EmailHelper.IsValidEmail(userEmail))
                 {
                     string subject = "OTP For MMABM-AH-GMC MRD Revenue Software : " + otp;
@@ -92,6 +89,7 @@ namespace LabSoftware.Controllers
             }
         }
 
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult ConfirmOTP(string confirmOtp)
@@ -100,7 +98,6 @@ namespace LabSoftware.Controllers
             string otp = HttpContext.Session.GetString("OTP");
             string redirectUrl = HttpContext.Session.GetString("responsefromAPI");
 
-            // Bypass OTP for test users (same as AnantnagRevenueUI)
             if (userName == "javeed" || userName == "nitsjk")
             {
                 HttpContext.Session.SetString("ConfirmOTP", confirmOtp ?? "");

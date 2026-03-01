@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using EasioCore.BLL;
 using EasioCore.Models;
 using Newtonsoft.Json;
@@ -12,10 +13,12 @@ namespace LabSoftware.Controllers
     public class RegistrationController : Controller
     {
         private readonly IWebHostEnvironment _env;
+        private readonly IConfiguration _config;
 
-        public RegistrationController(IWebHostEnvironment env)
+        public RegistrationController(IWebHostEnvironment env, IConfiguration config)
         {
             _env = env;
+            _config = config;
         }
 
         public IActionResult Index()
@@ -37,11 +40,9 @@ namespace LabSoftware.Controllers
             ViewBag.FYear = HttpContext.Session.GetString("FYear") ?? "2025-26";
             ViewBag.TodaysCollection = AccountBLL.GetTodaysCollectionForUser(HttpContext.Session.GetString("UserName")).ToString("N2");
 
-            // Load Lab/Centre from API (same as web form LoadHospitalsOnDdl)
             var hospitals = TestMasterBLL.GetListOfHospitals();
             ViewBag.Hospitals = hospitals;
 
-            // Load District from API (same as web form LoadDistrictOnDdl)
             var districts = DistrictBLL.GetListOfDistricts();
             ViewBag.Districts = districts;
 
@@ -61,10 +62,9 @@ namespace LabSoftware.Controllers
             if (userTypeId != "4")
                 return RedirectToAction("Index", "Dashboard");
 
-            // Same logic as Anantnag Default.aspx RegisterPatient()
             var patient = new SMHSData
             {
-                ActionType = 1, // FOR ALL OUTSIDE HOSPITALs
+                ActionType = 1, 
                 MRDNo = MrdOpdNo ?? "",
                 PatientType = "0",
                 PatientName = PatientName ?? "",
@@ -128,7 +128,6 @@ namespace LabSoftware.Controllers
             ViewBag.FYear = HttpContext.Session.GetString("FYear") ?? "2025-26";
             ViewBag.TodaysCollection = AccountBLL.GetTodaysCollectionForUser(HttpContext.Session.GetString("UserName")).ToString("N2");
 
-            // Same as Anantnag: LoadPatientDetails() – get patient by UID
             var response = SMHSBLL.getPatientsOnUID(uid);
             if (!response.ResponseIsSuccess() || response.ResponseData == null)
             {
@@ -139,16 +138,13 @@ namespace LabSoftware.Controllers
             var patient = JsonConvert.DeserializeObject<SMHSData>(response.ResponseData.ToString());
             ViewBag.Patient = patient;
 
-            // Patient type display: OTHER, OPD, IPD, SSA (same as Anantnag)
             var pt = "OTHER";
             if (int.TryParse(patient?.PatientType, out int ptNum) && Enum.IsDefined(typeof(PatientsTypes), ptNum))
                 pt = Enum.GetName(typeof(PatientsTypes), ptNum);
             ViewBag.PatientTypeDisplay = pt;
 
-            // Date Today (same as Anantnag txtDateToday)
             ViewBag.DateToday = DateTime.Now.ToString("dd-MM-yyyy");
 
-            // Same as Anantnag: BindTestCategoriesAndTestToListBox – build "All" list from categories + tests
             var catResponse = LabBLL.GetAllTestCategories();
             var tests = TestMasterBLL.GetAllTests();
             var allTestsList = new List<object>();
@@ -159,7 +155,6 @@ namespace LabSoftware.Controllers
             }
             ViewBag.AllTestsList = allTestsList;
 
-            // Show receipt after Save Bill success (same as Anantnag PrepareRecieptForPrint)
             bool showReceipt = Request.Query["showReceipt"].ToString() == "1" || (TempData["ShowReceipt"] as bool? == true);
             ViewBag.ShowReceipt = showReceipt;
             if (showReceipt)
@@ -171,6 +166,7 @@ namespace LabSoftware.Controllers
                 ViewBag.ReceiptPaymentMode = HttpContext.Session.GetString("ReceiptPaymentMode");
                 ViewBag.ReceiptDate = HttpContext.Session.GetString("ReceiptDate");
                 ViewBag.CompanyName = HTBLL.CompanyName();
+                ViewBag.ReceiptSubtitle = _config.GetValue<string>("ReceiptSubtitle") ?? "";
                 var receiptPatientJson = HttpContext.Session.GetString("ReceiptPatient");
                 ViewBag.ReceiptPatient = string.IsNullOrEmpty(receiptPatientJson) ? null : JsonConvert.DeserializeObject<SMHSData>(receiptPatientJson);
                 ViewBag.ReceiptFreeTypeName = HttpContext.Session.GetString("ReceiptFreeTypeName") ?? "Full Paid";

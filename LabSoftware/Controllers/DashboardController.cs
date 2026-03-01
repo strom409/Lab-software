@@ -9,7 +9,6 @@ namespace LabSoftware.Controllers
     {
         public IActionResult Index()
         {
-            // Same logic as AnantnagRevenueUI DashBoard.aspx
             if (!LoginBLL.IsLoggedIn(HttpContext.Session))
                 return RedirectToAction("Login", "Auth");
 
@@ -19,16 +18,13 @@ namespace LabSoftware.Controllers
             if (string.IsNullOrEmpty(confirmOtp) || confirmOtp != otp)
                 return RedirectToAction("Login", "Auth");
 
-            // Allow all user types (1–6) to access dashboard; Registration/Labs/Accounts not in MVC yet
 
-            // Load menu and dashboard data (same as AnantnagRevenueUI)
             string masterIds = HttpContext.Session.GetString("MasterIDs") ?? "";
             ViewBag.LeftMenu = DashBoardBLL.LeftMenuList(masterIds);
             ViewBag.ActiveUsers = DashBoardBLL.ActiveUserList();
             ViewBag.UserMessages = DashBoardBLL.UserMessageBoxList();
             ViewBag.Notices = DashBoardBLL.DashBoardNoticeList();
 
-            // Dashboard stats from API
             var dash = new DashDetails();
             var response = DashBLLAPI.GetDataForDashBoard();
             if (response.IsSuccess && response.Status == 1 && response.ResponseData != null)

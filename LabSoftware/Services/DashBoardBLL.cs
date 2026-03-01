@@ -95,17 +95,5 @@ namespace EasioCore.BLL
             }
             return dbn;
         }
-
-        public static void SetStudentDataInSession(Microsoft.AspNetCore.Http.ISession session)
-        {
-            session.SetString("TotalStudents", "700");
-            session.SetString("TotalMStudents", "450");
-            session.SetString("TotalFStudents", "250");
-            session.SetString("StudentsAbsent", "10");
-            session.SetString("TotalStaff", "60");
-            session.SetString("TotalMStaff", "50");
-            session.SetString("TotalFStaff", "10");
-            session.SetString("AbsentStaff", "3");
-        }
     }
 }
