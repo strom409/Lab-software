@@ -73,13 +73,20 @@
                             <option value="0">-- Select --</option>
                             @foreach (var h in hospitals)
                             {
-                                <option value="@h.HID">@h.HName</option>
+                                if (h.HName == "H1")
+                                {
+                                    <option value="@h.HID" selected>@h.HName</option>
+                                }
+                                else
+                                {
+                                    <option value="@h.HID">@h.HName</option>
+                                }
                             }
                         </select>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#patientRegistrationModal">Register New Patient</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="btnRegisterNewPatient" data-bs-toggle="modal" data-bs-target="#patientRegistrationModal">Register New Patient</button>
                 </div>
             </div>
         </fieldset>
@@ -192,6 +199,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <div id="formRegisterPatientError" class="alert alert-danger py-2 mb-0 me-auto d-none" role="alert"></div>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="submit" class="btn btn-primary" id="btnRegisterSubmit">Submit</button>
                 </div>
@@ -206,6 +214,8 @@
         var modal = document.getElementById('patientRegistrationModal');
         var ddlLab = document.getElementById('ddlLabCentre');
         var hidHIDFK = document.getElementById('hidHIDFK');
+        // Focus Register New Patient button so user can press Enter to open popup
+        document.getElementById('btnRegisterNewPatient')?.focus();
         if (modal && ddlLab && hidHIDFK) {
             modal.addEventListener('show.bs.modal', function() {
                 hidHIDFK.value = ddlLab.value || '0';
@@ -214,6 +224,7 @@
             modal.addEventListener('shown.bs.modal', function() {
                 modal.setAttribute('aria-hidden', 'false');
                 modal.removeAttribute('inert');
+                document.getElementById('txtPatientName')?.focus();
             });
             modal.addEventListener('hide.bs.modal', function() {
                 modal.setAttribute('inert', '');
@@ -228,23 +239,32 @@
             modal.setAttribute('inert', '');
         }
         document.getElementById('formRegisterPatient')?.addEventListener('submit', function(e) {
+            var errEl = document.getElementById('formRegisterPatientError');
             var lab = document.getElementById('ddlLabCentre').value;
             if (!lab || lab === '0') {
                 e.preventDefault();
-                alert('Please select Lab / Centre first.');
+                if (errEl) { errEl.textContent = 'Please select Lab / Centre first.'; errEl.classList.remove('d-none'); }
                 return false;
             }
             var district = document.getElementById('ddlDistrict').value;
             if (!district || district === '0') {
                 e.preventDefault();
-                alert('Please select District.');
+                if (errEl) { errEl.textContent = 'Please select District.'; errEl.classList.remove('d-none'); document.getElementById('ddlDistrict')?.focus(); }
                 return false;
             }
             if (document.getElementById('ddlGender').value === '0') {
                 e.preventDefault();
-                alert('Please select Gender.');
+                if (errEl) { errEl.textContent = 'Please select Gender.'; errEl.classList.remove('d-none'); document.getElementById('ddlGender')?.focus(); }
                 return false;
             }
+            if (errEl) { errEl.classList.add('d-none'); errEl.textContent = ''; }
+        });
+
+        [document.getElementById('ddlLabCentre'), document.getElementById('ddlDistrict'), document.getElementById('ddlGender')].forEach(function(el) {
+            if (el) el.addEventListener('change', function() {
+                var err = document.getElementById('formRegisterPatientError');
+                if (err && !err.classList.contains('d-none')) { err.classList.add('d-none'); err.textContent = ''; }
+            });
         });
 
         // Enter key: move focus to next field (same order as form)

@@ -63,5 +63,7 @@
         var btn = document.getElementById('btnSignIn');
         if (btn) { btn.disabled = true; btn.textContent = 'Signing in...'; }
     });
+    // When Confirm OTP step is shown, cursor goes directly to OTP input
+    document.getElementById('confirmOtp')?.focus();
 </script>
 }
