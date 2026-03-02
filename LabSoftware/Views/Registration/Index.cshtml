@@ -143,7 +143,7 @@
                         <div class="col-md-4">
                             <div class="input-group mb-3">
                                 <label class="input-group-text" for="txtMobileNumber">Mobile Number</label>
-                                <input type="text" class="form-control" id="txtMobileNumber" name="MobileNumber" placeholder="Mobile No" required maxlength="15" inputmode="numeric" pattern="[0-9]*" />
+                                <input type="text" class="form-control" id="txtMobileNumber" name="MobileNumber" placeholder="Mobile No (optional)" maxlength="15" />
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -238,8 +238,8 @@
             modal.setAttribute('aria-hidden', 'true');
             modal.setAttribute('inert', '');
         }
-        // Mobile, Age, MRD: allow only digits on input
-        ['txtMobileNumber', 'txtAge', 'txtMrdOpdNo'].forEach(function(id) {
+        // Age, MRD: allow only digits on input. Phone is optional and alphanumeric allowed.
+        ['txtAge', 'txtMrdOpdNo'].forEach(function(id) {
             var el = document.getElementById(id);
             if (el) el.addEventListener('input', function() {
                 this.value = this.value.replace(/\D/g, '');
@@ -263,12 +263,6 @@
             if (document.getElementById('ddlGender').value === '0') {
                 e.preventDefault();
                 if (errEl) { errEl.textContent = 'Please select Gender.'; errEl.classList.remove('d-none'); document.getElementById('ddlGender')?.focus(); }
-                return false;
-            }
-            var mobile = document.getElementById('txtMobileNumber').value;
-            if (!/^\d+$/.test(mobile) || mobile.length < 10) {
-                e.preventDefault();
-                if (errEl) { errEl.textContent = 'Mobile Number must be digits only (min 10).'; errEl.classList.remove('d-none'); document.getElementById('txtMobileNumber')?.focus(); }
                 return false;
             }
             var age = document.getElementById('txtAge').value;

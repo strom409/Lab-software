@@ -124,7 +124,9 @@ namespace LabSoftware.Controllers
             if (string.IsNullOrEmpty(uid))
                 return RedirectToAction("Index");
 
-            ViewBag.UserFullName = HttpContext.Session.GetString("UserFullName") ?? "Registration User";
+            var ufn = HttpContext.Session.GetString("UserFullName");
+            var un = HttpContext.Session.GetString("UserName");
+            ViewBag.UserFullName = (string.IsNullOrEmpty(ufn) || string.Equals(ufn, "Registration User", StringComparison.OrdinalIgnoreCase)) ? (un ?? "") : ufn;
             ViewBag.FYear = HttpContext.Session.GetString("FYear") ?? "2025-26";
             ViewBag.TodaysCollection = AccountBLL.GetTodaysCollectionForUser(HttpContext.Session.GetString("UserName")).ToString("N2");
 

@@ -38,14 +38,21 @@
     .receipt-table td { padding: 5px 8px; }
     .receipt-table tfoot tr { border-top: 1px solid #eee; font-weight: bold; }
     .receipt-remarks-box { border: 1px solid #333; border-radius: 8px; padding: 10px; margin-top: 12px; text-align: left; min-height: 50px; position: relative; }
-    /* Print: show only receipt; A5 paper size */
-    @@page { size: A5; margin: 10mm; }
+    /* Print: A5, one page, receipt at top (no extra top space). Turn OFF "Headers and footers" in print dialog */
+    @@page { size: A5; margin: 0 4mm 4mm 4mm; }
     @@media print {
+        html, body { margin: 0 !important; padding: 0 !important; height: auto !important; min-height: 0 !important; }
         nav.main-header, .card .card-header, .reg-footer, footer, .no-print { display: none !important; }
-        .card, .card-body { border: none !important; box-shadow: none !important; background: transparent !important; }
-        .card-body { padding: 0 !important; }
-        .receipt-section-wrap { margin: 0; padding: 0; }
-        .receipt-panel { box-shadow: none; border: 1px solid #333; }
+        .card, .card-body { border: none !important; box-shadow: none !important; background: transparent !important; height: auto !important; min-height: 0 !important; }
+        .card-body { padding: 0 !important; margin: 0 !important; }
+        .receipt-section-wrap { margin: 0 !important; padding: 0 !important; width: 420px !important; max-width: 100%; position: relative; left: 0; top: 0; }
+        .receipt-panel { box-shadow: none; border: 1px solid #333; width: 420px !important; max-width: 100%; box-sizing: border-box; padding: 5px 8px; page-break-inside: avoid; page-break-after: avoid; }
+        .receipt-panel, .receipt-panel td, .receipt-panel th, .receipt-panel div, .receipt-panel span { font-size: 10px; line-height: 1.1; }
+        .receipt-company h3 { font-size: 1rem; }
+        .receipt-panel .receipt-logo { height: 50px; width: 50px; }
+        .receipt-panel hr { margin: 4px 0 !important; }
+        .receipt-panel .receipt-two-col { margin: 4px 0 !important; padding: 0 4px !important; }
+        .receipt-panel .receipt-remarks-box { min-height: 36px; padding: 6px; margin-top: 6px; }
     }
 </style>
 
