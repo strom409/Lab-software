@@ -38,7 +38,8 @@
     .receipt-table td { padding: 5px 8px; }
     .receipt-table tfoot tr { border-top: 1px solid #eee; font-weight: bold; }
     .receipt-remarks-box { border: 1px solid #333; border-radius: 8px; padding: 10px; margin-top: 12px; text-align: left; min-height: 50px; position: relative; }
-    /* Print: show only receipt (like screenshot 3 - print dialog) */
+    /* Print: show only receipt; A5 paper size */
+    @@page { size: A5; margin: 10mm; }
     @@media print {
         nav.main-header, .card .card-header, .reg-footer, footer, .no-print { display: none !important; }
         .card, .card-body { border: none !important; box-shadow: none !important; background: transparent !important; }
@@ -176,7 +177,13 @@
                 </div>
             </div>
             <script>
-                document.getElementById('btnPrint')?.addEventListener('click', function() { window.print(); });
+                (function() {
+                    var btn = document.getElementById('btnPrint');
+                    if (btn) {
+                        btn.addEventListener('click', function() { window.print(); });
+                        btn.focus();
+                    }
+                })();
             </script>
         }
         else
@@ -525,11 +532,11 @@
             if (msgEl && modalEl) {
                 msgEl.textContent = 'Are you sure you want to save the current receipt for amount ₹' + amt + '?';
                 var modal = new bootstrap.Modal(modalEl);
-                modal.show();
                 document.getElementById('btnConfirmSaveBill').onclick = function() {
                     modal.hide();
                     doSaveBill();
                 };
+                modal.show();
             } else {
                 if (!confirm('Are you sure you want to save the current receipt for amount ₹' + amt + '?')) return;
                 doSaveBill();
@@ -542,6 +549,25 @@
                 if (err && !err.classList.contains('d-none')) { err.classList.add('d-none'); err.textContent = ''; }
             });
         });
+
+        var confirmModalEl = document.getElementById('confirmSaveBillModal');
+        if (confirmModalEl) {
+            confirmModalEl.addEventListener('shown.bs.modal', function() {
+                document.getElementById('btnConfirmSaveBill').focus();
+                var keyHandler = function(e) {
+                    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btnConfirmSaveBill').click(); }
+                    else if (e.key === 'ArrowLeft') { e.preventDefault(); var m = bootstrap.Modal.getInstance(confirmModalEl); if (m) m.hide(); }
+                };
+                confirmModalEl.addEventListener('keydown', keyHandler);
+                confirmModalEl._confirmKeyHandler = keyHandler;
+            });
+            confirmModalEl.addEventListener('hidden.bs.modal', function() {
+                if (confirmModalEl._confirmKeyHandler) {
+                    confirmModalEl.removeEventListener('keydown', confirmModalEl._confirmKeyHandler);
+                    confirmModalEl._confirmKeyHandler = null;
+                }
+            });
+        }
 
         function doSaveBill() {
             var amt = txtBillAmount.value;
