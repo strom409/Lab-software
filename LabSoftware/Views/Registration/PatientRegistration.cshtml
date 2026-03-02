@@ -60,9 +60,19 @@
 <div class="card card-outline card-info" style="min-height: 100vh;">
     <div class="card-header" style="background: #f8f9fa; border-bottom: 1px solid #dee2e6;">
         <h3 class="card-title mb-0">
-            <a asp-action="Index" class="btn btn-sm btn-danger" style="margin-bottom: 4px;">
-                <i class="fa fa-arrow-left"></i>&nbsp;Back
-            </a>&nbsp;
+            @if (showReceipt)
+            {
+                <a asp-action="PatientRegistration" class="btn btn-sm btn-danger" style="margin-bottom: 4px;" id="btnBack">
+                    <i class="fa fa-arrow-left"></i>&nbsp;Back
+                </a>
+            }
+            else
+            {
+                <a asp-action="Index" class="btn btn-sm btn-danger" style="margin-bottom: 4px;" id="btnBack">
+                    <i class="fa fa-arrow-left"></i>&nbsp;Back
+                </a>
+            }
+            &nbsp;
             <span>Patient Registration</span>
         </h3>
         <span class="float-end">
@@ -178,11 +188,15 @@
             </div>
             <script>
                 (function() {
-                    var btn = document.getElementById('btnPrint');
-                    if (btn) {
-                        btn.addEventListener('click', function() { window.print(); });
-                        btn.focus();
+                    var btnPrint = document.getElementById('btnPrint');
+                    var btnBack = document.getElementById('btnBack');
+                    if (btnPrint) {
+                        btnPrint.addEventListener('click', function() { window.print(); });
+                        btnPrint.focus();
                     }
+                    window.addEventListener('afterprint', function() {
+                        if (btnBack) btnBack.focus();
+                    });
                 })();
             </script>
         }
@@ -550,6 +564,15 @@
             });
         });
 
+        var ddlMode = document.getElementById('ddlMode');
+        var btnSaveBill = document.getElementById('btnSaveBill');
+        if (ddFreeType) ddFreeType.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); if (ddlMode) ddlMode.focus(); }
+        });
+        if (ddlMode) ddlMode.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); if (btnSaveBill) btnSaveBill.focus(); }
+        });
+
         var confirmModalEl = document.getElementById('confirmSaveBillModal');
         if (confirmModalEl) {
             confirmModalEl.addEventListener('shown.bs.modal', function() {
@@ -597,7 +620,7 @@
                 alert('Request failed.');
             });
         }
-        // After submit (redirect here), cursor goes to search box so user can type and select tests
+        // After Submit Registration, cursor goes to search box so user can type and select tests
         if (txtSearchTest) txtSearchTest.focus();
     })();
 </script>

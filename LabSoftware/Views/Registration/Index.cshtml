@@ -143,13 +143,13 @@
                         <div class="col-md-4">
                             <div class="input-group mb-3">
                                 <label class="input-group-text" for="txtMobileNumber">Mobile Number</label>
-                                <input type="text" class="form-control" id="txtMobileNumber" name="MobileNumber" placeholder="Mobile No" required />
+                                <input type="text" class="form-control" id="txtMobileNumber" name="MobileNumber" placeholder="Mobile No" required maxlength="15" inputmode="numeric" pattern="[0-9]*" />
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="input-group mb-3">
                                 <label class="input-group-text" for="txtAge">Age</label>
-                                <input type="text" class="form-control" id="txtAge" name="Age" placeholder="Age" required />
+                                <input type="text" class="form-control" id="txtAge" name="Age" placeholder="Age" required maxlength="3" inputmode="numeric" pattern="[0-9]*" />
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -193,7 +193,7 @@
                         <div class="col-md-6">
                             <div class="input-group mb-3">
                                 <label class="input-group-text" for="txtMrdOpdNo">MRD/OPD No.</label>
-                                <input type="text" class="form-control" id="txtMrdOpdNo" name="MrdOpdNo" placeholder="MRD/OPD No." required />
+                                <input type="text" class="form-control" id="txtMrdOpdNo" name="MrdOpdNo" placeholder="MRD/OPD No." required maxlength="20" inputmode="numeric" pattern="[0-9]*" />
                             </div>
                         </div>
                     </div>
@@ -238,6 +238,14 @@
             modal.setAttribute('aria-hidden', 'true');
             modal.setAttribute('inert', '');
         }
+        // Mobile, Age, MRD: allow only digits on input
+        ['txtMobileNumber', 'txtAge', 'txtMrdOpdNo'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '');
+            });
+        });
+
         document.getElementById('formRegisterPatient')?.addEventListener('submit', function(e) {
             var errEl = document.getElementById('formRegisterPatientError');
             var lab = document.getElementById('ddlLabCentre').value;
@@ -257,14 +265,41 @@
                 if (errEl) { errEl.textContent = 'Please select Gender.'; errEl.classList.remove('d-none'); document.getElementById('ddlGender')?.focus(); }
                 return false;
             }
+            var mobile = document.getElementById('txtMobileNumber').value;
+            if (!/^\d+$/.test(mobile) || mobile.length < 10) {
+                e.preventDefault();
+                if (errEl) { errEl.textContent = 'Mobile Number must be digits only (min 10).'; errEl.classList.remove('d-none'); document.getElementById('txtMobileNumber')?.focus(); }
+                return false;
+            }
+            var age = document.getElementById('txtAge').value;
+            if (!/^\d+$/.test(age) || age.length === 0) {
+                e.preventDefault();
+                if (errEl) { errEl.textContent = 'Age must be numeric only.'; errEl.classList.remove('d-none'); document.getElementById('txtAge')?.focus(); }
+                return false;
+            }
+            var mrd = document.getElementById('txtMrdOpdNo').value;
+            if (!/^\d+$/.test(mrd) || mrd.length === 0) {
+                e.preventDefault();
+                if (errEl) { errEl.textContent = 'MRD/OPD No. must be numeric only.'; errEl.classList.remove('d-none'); document.getElementById('txtMrdOpdNo')?.focus(); }
+                return false;
+            }
             if (errEl) { errEl.classList.add('d-none'); errEl.textContent = ''; }
         });
 
-        [document.getElementById('ddlLabCentre'), document.getElementById('ddlDistrict'), document.getElementById('ddlGender')].forEach(function(el) {
+        [document.getElementById('ddlLabCentre'), document.getElementById('ddlDistrict'), document.getElementById('ddlGender'), document.getElementById('txtMobileNumber'), document.getElementById('txtAge'), document.getElementById('txtMrdOpdNo')].forEach(function(el) {
             if (el) el.addEventListener('change', function() {
                 var err = document.getElementById('formRegisterPatientError');
                 if (err && !err.classList.contains('d-none')) { err.classList.add('d-none'); err.textContent = ''; }
             });
+        });
+        document.getElementById('txtMobileNumber')?.addEventListener('input', function() {
+            document.getElementById('formRegisterPatientError')?.classList.add('d-none');
+        });
+        document.getElementById('txtAge')?.addEventListener('input', function() {
+            document.getElementById('formRegisterPatientError')?.classList.add('d-none');
+        });
+        document.getElementById('txtMrdOpdNo')?.addEventListener('input', function() {
+            document.getElementById('formRegisterPatientError')?.classList.add('d-none');
         });
 
         // Enter key: move focus to next field (same order as form)
