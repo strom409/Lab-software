@@ -161,6 +161,7 @@ namespace LabSoftware.Controllers
             ViewBag.ShowReceipt = showReceipt;
             if (showReceipt)
             {
+                ViewBag.ReceiptReceivedBy = HttpContext.Session.GetString("UserName") ?? "";
                 ViewBag.ReceiptNo = HttpContext.Session.GetString("ReceiptNo");
                 ViewBag.RecpRemarks = HttpContext.Session.GetString("RecpRemarks");
                 ViewBag.ReceiptLines = SessionReceipt.GetReceiptLines(HttpContext.Session);

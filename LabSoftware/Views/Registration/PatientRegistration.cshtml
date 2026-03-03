@@ -17,6 +17,7 @@
     var receiptFreeTypeName = ViewBag.ReceiptFreeTypeName as string ?? "Full Paid";
     var receiptTransactionNo = ViewBag.ReceiptTransactionNo as string ?? "";
     var receiptSubtitle = ViewBag.ReceiptSubtitle as string ?? "";
+    var receiptReceivedBy = ViewBag.ReceiptReceivedBy as string ?? "";
 }
 
 <style>
@@ -31,23 +32,26 @@
     .receipt-company { text-align: left; }
     .receipt-company h3 { font-family: 'Times New Roman', serif; font-weight: 600; margin-bottom: 0; font-size: 1.35rem; }
     .receipt-company .subtitle { font-weight: 600; font-size: 14px; margin: 2px 0; color: #333; }
-    .receipt-two-col { display: flex; justify-content: space-between; padding: 0 10px; margin: 10px 0; }
+    .receipt-two-col { display: flex; justify-content: space-between; padding: 0 10px; margin: 10px 0; font-weight: bold; }
     .receipt-two-col > div { flex: 1; }
     .receipt-table { width: 100%; text-align: left; border-collapse: collapse; font-size: 14px; }
     .receipt-table th { border-bottom: 1px solid #eee; padding: 6px 8px; }
     .receipt-table td { padding: 5px 8px; }
     .receipt-table tfoot tr { border-top: 1px solid #eee; font-weight: bold; }
     .receipt-remarks-box { border: 1px solid #333; border-radius: 8px; padding: 10px; margin-top: 12px; text-align: left; min-height: 50px; position: relative; }
-    /* Print: A5, one page, receipt at top (no extra top space). Turn OFF "Headers and footers" in print dialog */
-    @@page { size: A5; margin: 0 4mm 4mm 4mm; }
+    /* Print: A5 (148mm x 210mm). In print dialog set Paper size to A5. Turn OFF "Headers and footers". */
+    @@media print {
+        @@page { size: 148mm 210mm; margin: 0 4mm 4mm 4mm; }
+    }
     @@media print {
         html, body { margin: 0 !important; padding: 0 !important; height: auto !important; min-height: 0 !important; }
         nav.main-header, .card .card-header, .reg-footer, footer, .no-print { display: none !important; }
         .card, .card-body { border: none !important; box-shadow: none !important; background: transparent !important; height: auto !important; min-height: 0 !important; }
         .card-body { padding: 0 !important; margin: 0 !important; }
-        .receipt-section-wrap { margin: 0 !important; padding: 0 !important; width: 420px !important; max-width: 100%; position: relative; left: 0; top: 0; }
-        .receipt-panel { box-shadow: none; border: 1px solid #333; width: 420px !important; max-width: 100%; box-sizing: border-box; padding: 5px 8px; page-break-inside: avoid; page-break-after: avoid; }
-        .receipt-panel, .receipt-panel td, .receipt-panel th, .receipt-panel div, .receipt-panel span { font-size: 10px; line-height: 1.1; }
+        /* Narrower receipt width, aligned to left so white space is mainly on the right (like reference) */
+        .receipt-section-wrap { margin: 0 !important; padding: 0 !important; width: 100mm !important; max-width: 100%; position: relative; left: 0; top: 0; }
+        .receipt-panel { box-shadow: none; border: 1px solid #333; width: 100mm !important; max-width: 100%; box-sizing: border-box; padding: 5px 8px; page-break-inside: avoid; page-break-after: avoid; }
+        .receipt-panel, .receipt-panel td, .receipt-panel th, .receipt-panel div, .receipt-panel span { font-size: 12px; line-height: 1.25; }
         .receipt-company h3 { font-size: 1rem; }
         .receipt-panel .receipt-logo { height: 50px; width: 50px; }
         .receipt-panel hr { margin: 4px 0 !important; }
@@ -176,7 +180,7 @@
                     <tr>
                         <td>Paid:&nbsp;<b>₹@receiptTotal</b></td>
                         <td>Mode of Payment:&nbsp;<b>@receiptPaymentMode</b></td>
-                        <td>Recived By:&nbsp;<b>@(ViewBag.UserFullName ?? "")</b></td>
+                        <td>Recived By:&nbsp;<b>@receiptReceivedBy</b></td>
                     </tr>
                     <tr>
                         <td colspan="3" style="padding-top: 6px;"><b>@receiptFreeTypeName On Rs.@receiptTotal</b></td>
