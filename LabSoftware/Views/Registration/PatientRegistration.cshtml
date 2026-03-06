@@ -417,6 +417,14 @@
         if (txtSearchTest) {
             txtSearchTest.addEventListener('input', function() { filterListBox(this.value); });
             txtSearchTest.addEventListener('keydown', function(e) {
+                // When Tab is pressed after selecting a test, jump directly to Save Bill button
+                if (e.key === 'Tab') {
+                    if (selectedTests.length > 0 && btnSaveBill) {
+                        e.preventDefault();
+                        btnSaveBill.focus();
+                    }
+                    return;
+                }
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     var opt = listBoxAll.options[listBoxAll.selectedIndex];
